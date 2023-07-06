@@ -1,25 +1,32 @@
-# Utilizar la imagen base de Java 17
-FROM openjdk:17
+# Utilizar una imagen base con Java y Maven instalados
+FROM maven:3.8.4-openjdk-17-slim AS build
 
-# Establecer el directorio de trabajo dentro del contenedor
+# Establecer el directorio de trabajo en la raíz del proyecto
 WORKDIR /app
 
-# Copiar los archivos pom.xml y el Maven Wrapper
+# Copiar el archivo pom.xml al directorio de trabajo
 COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
 
-# Descargar las dependencias del proyecto utilizando el Maven Wrapper
-RUN ./mvnw dependency:go-offline -B
+# Descargar las dependencias del proyecto
+RUN mvn dependency:go-offline -B
 
-# Copiar todo el contenido del proyecto al directorio de trabajo
-COPY . .
+# Copiar el resto de los archivos del proyecto al directorio de trabajo
+COPY src ./src
 
-# Compilar el proyecto utilizando el Maven Wrapper
-RUN ./mvnw package -DskipTests
+# Compilar el proyecto
+RUN mvn package -DskipTests
 
-# Exponer el puerto 8080
+# Crear una imagen final con una versión más ligera de Java
+FROM adoptopenjdk:17-jre-hotspot
+
+# Establecer el directorio de trabajo en la raíz de la aplicación
+WORKDIR /app
+
+# Copiar el archivo JAR generado durante la compilación
+COPY --from=build /app/target/peliculas-0.0.1-SNAPSHOT.jar ./app.jar
+
+# Exponer el puerto en el que se ejecutará la aplicación
 EXPOSE 8080
 
-# Ejecutar el comando para iniciar la aplicación Spring Boot
-CMD ["java", "-jar", "target/peliculas-0.0.1-SNAPSHOT.jar"]
+# Comando para ejecutar la aplicación cuando el contenedor se inicie
+CMD ["java", "-jar", "app.jar"]
