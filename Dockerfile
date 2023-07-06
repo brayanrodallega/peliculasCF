@@ -1,20 +1,23 @@
-# Use an official OpenJDK runtime as the base image
+# Utilizar la imagen base de Java 17
 FROM openjdk:17
 
-# Set the working directory inside the container
+# Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copy the Maven project file
+# Copiar el archivo pom.xml al directorio de trabajo
 COPY pom.xml .
 
-# Download all the dependencies to build the application
-RUN mvn dependency:go-offline -B
+# Descargar las dependencias del proyecto utilizando Maven
+RUN ./mvnw dependency:go-offline -B
 
-# Copy the source code to the container
-COPY src ./src
+# Copiar todo el contenido del proyecto al directorio de trabajo
+COPY . .
 
-# Build the application
-RUN mvn package -DskipTests
+# Compilar el proyecto utilizando Maven
+RUN ./mvnw package -DskipTests
 
-# Set the entry point to run the application
-ENTRYPOINT ["java", "-jar", "target/peliculas-0.0.1-SNAPSHOT.jar"]
+# Exponer el puerto 8080
+EXPOSE 8080
+
+# Ejecutar el comando para iniciar la aplicación Spring Boot
+CMD ["java", "-jar", "target/peliculas-0.0.1-SNAPSHOT.jar"]
