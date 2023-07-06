@@ -4,16 +4,18 @@ FROM openjdk:17
 # Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copiar el archivo pom.xml al directorio de trabajo
+# Copiar los archivos pom.xml y el Maven Wrapper
 COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 
-# Descargar las dependencias del proyecto utilizando Maven
+# Descargar las dependencias del proyecto utilizando el Maven Wrapper
 RUN ./mvnw dependency:go-offline -B
 
 # Copiar todo el contenido del proyecto al directorio de trabajo
 COPY . .
 
-# Compilar el proyecto utilizando Maven
+# Compilar el proyecto utilizando el Maven Wrapper
 RUN ./mvnw package -DskipTests
 
 # Exponer el puerto 8080
