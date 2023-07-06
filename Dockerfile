@@ -1,23 +1,20 @@
-# Usa la imagen de Java 17 como base
+# Use an official OpenJDK runtime as the base image
 FROM openjdk:17
 
-# Establece el directorio de trabajo en /app
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copia el archivo pom.xml al directorio de trabajo
+# Copy the Maven project file
 COPY pom.xml .
 
-# Instala Maven y descarga las dependencias del proyecto
-RUN apt-get update && apt-get install -y maven && mvn dependency:go-offline
+# Download all the dependencies to build the application
+RUN mvn dependency:go-offline -B
 
-# Copia el resto de los archivos al directorio de trabajo
+# Copy the source code to the container
 COPY src ./src
 
-# Empaqueta la aplicación usando Maven
+# Build the application
 RUN mvn package -DskipTests
 
-# Expone el puerto 8080
-EXPOSE 8080
-
-# Establece el comando de inicio de la aplicación
-CMD ["java", "-jar", "target/peliculas-0.0.1-SNAPSHOT.jar"]
+# Set the entry point to run the application
+ENTRYPOINT ["java", "-jar", "target/peliculas-0.0.1-SNAPSHOT.jar"]
